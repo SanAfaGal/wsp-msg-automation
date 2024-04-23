@@ -1,10 +1,11 @@
+import os
 import subprocess as sb
 import time
 from tkinter import messagebox
 from urllib.parse import quote
 
 import pyautogui as pg
-from pywhatkit.core import core, exceptions, log
+from pywhatkit.core import core, exceptions
 
 from data import get_info_of_customers, filter_data_by_vendor
 
@@ -14,9 +15,28 @@ WAIT_TIME_PER_CUSTOMER: int = 15  # Time to wait before sending the message
 CLOSE_TAB_WAIT_TIME: int = 2  # Time to wait before closing the tab
 
 
+def log_message(_time: time.struct_time, customer: str, receiver: str, message: str) -> None:
+    """Logs the Message Information after it is Sent"""
+
+    folder_path = "logs"
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    file_path = os.path.join(folder_path, f'{_time.tm_mday}_{_time.tm_mon}_{_time.tm_year}.txt')
+
+    with open(file_path, "a", encoding="utf-8") as file:
+        file.write(
+            f"Time: {_time.tm_hour}:{_time.tm_min}:{_time.tm_sec}\n"
+            f"Customer: {customer}\n"
+            f"Phone Number: {receiver}\n"
+            f"Message: {message}"
+        )
+        file.write("\n--------------------\n")
+        file.close()
+
+
 def send_wsp_msg(
-        phone_number: str,
-        message: str,
+        customer: dict,
         close_tab_after_send: bool = False,
         browser_path: str = EDGE_PATH
 ) -> None:
@@ -24,8 +44,7 @@ def send_wsp_msg(
     Send WhatsApp message instantly.
 
     Args:
-        phone_number (str): The phone number to send the message to.
-        message (str): The message content.
+        customer (dict): Info like name, phone and message about the customer
         close_tab_after_send (bool): Whether to close the browser tab after sending the message, default is False.
         browser_path (str): Path to the browser executable, default is EDGE.
 
@@ -33,11 +52,11 @@ def send_wsp_msg(
         exceptions.CountryCodeException: If country code is missing in the phone number.
     """
 
-    if not core.check_number(number=phone_number):
+    if not core.check_number(number=customer['TELEFONO']):
         raise exceptions.CountryCodeException("Country Code Missing in Phone Number!")
 
     # Construct the URL for sending a WhatsApp message using the provided phone number and message content
-    url = f"https://web.whatsapp.com/send?phone={phone_number}&text={quote(message)}"
+    url = f"https://web.whatsapp.com/send?phone={customer['TELEFONO']}&text={quote(customer['MENSAJE'])}"
     # Open the specified browser with the constructed URL
     sb.Popen([browser_path, url])
     # Wait for 5 seconds to ensure the WhatsApp Web page is fully loaded
@@ -49,7 +68,8 @@ def send_wsp_msg(
     # Simulate pressing the 'Enter' key to send the message
     pg.press("enter")
     # Log the sent message along with the current timestamp, receiver's phone number, and message content
-    log.log_message(_time=time.localtime(), receiver=phone_number, message=message)
+    log_message(_time=time.localtime(), customer=customer['CLIENTE'], receiver=customer['TELEFONO'],
+                message=customer['MENSAJE'])
 
     if close_tab_after_send:
         core.close_tab(wait_time=CLOSE_TAB_WAIT_TIME)
@@ -65,7 +85,8 @@ def send_messages_to_customers(customers: list[dict[str, str]], browser: str) ->
     """
 
     for customer in customers:
-        send_wsp_msg(customer['TELEFONO'], customer['MENSAJE'], close_tab_after_send=True, browser_path=browser)
+        send_wsp_msg(customer, close_tab_after_send=True,
+                     browser_path=browser)
         print(f"Message sent to {customer['CLIENTE']} → OK")
 
 

@@ -3,7 +3,7 @@ from google.oauth2.service_account import Credentials
 from pandas import DataFrame, concat
 
 
-def get_worksheet(credentials_file_path:str) -> gs.Worksheet:
+def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     """
     Get the Google Spreadsheet worksheet for processing.
 
