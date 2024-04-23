@@ -40,12 +40,12 @@ def send_wsp_msg(
     url = f"https://web.whatsapp.com/send?phone={phone_number}&text={quote(message)}"
     # Open the specified browser with the constructed URL
     sb.Popen([browser_path, url])
-    # Wait for 4 seconds to ensure the WhatsApp Web page is fully loaded
-    time.sleep(4)
+    # Wait for 5 seconds to ensure the WhatsApp Web page is fully loaded
+    time.sleep(5)
     # Click at the center of the screen to focus on the message input area in the WhatsApp Web interface
     pg.click(core.WIDTH / 2, core.HEIGHT / 2)
-    # Wait for the specified time (minus 4 seconds) before sending the message
-    time.sleep(WAIT_TIME_PER_CUSTOMER - 4)
+    # Wait for the specified time (minus 5 seconds) before sending the message
+    time.sleep(WAIT_TIME_PER_CUSTOMER - 5)
     # Simulate pressing the 'Enter' key to send the message
     pg.press("enter")
     # Log the sent message along with the current timestamp, receiver's phone number, and message content
