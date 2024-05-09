@@ -145,12 +145,14 @@ def print_customers(vendor: str, dict_customer: list[dict]):
     Returns:
     None
     """
-    print(f"VENDEDOR: {vendor}".center(17, '*'))
 
-    for i, customer in enumerate(dict_customer, start=1):
-        print(f"{i}) CLIENTE: {customer['CLIENTE']} - MENSAJE: {customer['MENSAJE']}")
+    if len(dict_customer) > 0:
+        print(f"VENDEDOR: {vendor}".center(17, '*'))
 
-    print()
+        for i, customer in enumerate(dict_customer, start=1):
+            print(f"{i}) CLIENTE: {customer['CLIENTE']} - MENSAJE: {customer['MENSAJE']}")
+
+        print()
 
 
 # Obtain customers for Edge and Chrome browsers
@@ -168,9 +170,8 @@ total_time = calculate_total_time(customers_edge, customers_chrome)
 total_customers = df_customers.shape[0]
 
 # Print customer information for Edge and Chrome browsers
-if total_customers > 0:
-    print_customers(vendor_initials_edge, customers_edge)
-    print_customers(vendor_initials_chrome, customers_chrome)
+print_customers(vendor_initials_edge, customers_edge)
+print_customers(vendor_initials_chrome, customers_chrome)
 
 # Show confirmation dialog and proceed based on user input
 if show_confirmation_dialog(total_customers, total_time):
