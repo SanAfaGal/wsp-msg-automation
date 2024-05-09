@@ -148,7 +148,8 @@ def add_message_column(df_grouped: DataFrame, day_str: str) -> DataFrame:
 
     df_grouped['NOMBRE'] = df_grouped['CLIENTE'].str.split().str[0]
     df_grouped['MENSAJE'] = 'Hola, ' + df_grouped['NOMBRE'] + '. Buen día. ' + day_str + ' empieza otro mes de ' + \
-                            df_grouped['SERVICIO'] + ', ¿desea continuar?'
+                            df_grouped[
+                                'SERVICIO'] + '. Me confirma porfa si todo le funciona correctamente y si desea continuar con el servicio.'
 
     return df_grouped
 
