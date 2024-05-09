@@ -11,12 +11,32 @@ from data import get_info_of_customers, filter_data_by_vendor
 
 CHROME_PATH = f'C:/Program Files/Google/Chrome/Application/chrome.exe'
 EDGE_PATH = f'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+
 WAIT_TIME_PER_CUSTOMER: int = 15  # Time to wait before sending the message
 CLOSE_TAB_WAIT_TIME: int = 2  # Time to wait before closing the tab
 
+IDX_DAY_CUST = '0'
+MSG_DAY_CUST = 'Hoy'
+IDX_DAY_RES = '1'
+MSG_DAY_RES = 'Mañana'
 
-def log_message(_time: time.struct_time, customer: str, receiver: str, message: str) -> None:
-    """Logs the Message Information after it is Sent"""
+VEND_INI_EDGE = 'BGL'
+VEND_INI_CHROME = 'SAG'
+
+
+def log_sent_message(_time: time.struct_time, customer: str, phone_number: str, message: str) -> None:
+    """
+    Logs the message information after it is sent.
+
+    Parameters:
+        _time (time.struct_time): The time at which the message was sent.
+        customer (str): The name of the customer.
+        phone_number (str): The phone number to which the message was sent.
+        message (str): The content of the message.
+
+    Returns:
+        None
+    """
 
     folder_path = "logs"
     if not os.path.exists(folder_path):
@@ -28,7 +48,7 @@ def log_message(_time: time.struct_time, customer: str, receiver: str, message: 
         file.write(
             f"Time: {_time.tm_hour}:{_time.tm_min}:{_time.tm_sec}\n"
             f"Customer: {customer}\n"
-            f"Phone Number: {receiver}\n"
+            f"Phone Number: {phone_number}\n"
             f"Message: {message}"
         )
         file.write("\n--------------------\n")
@@ -68,8 +88,8 @@ def send_wsp_msg(
     # Simulate pressing the 'Enter' key to send the message
     pg.press("enter")
     # Log the sent message along with the current timestamp, receiver's phone number, and message content
-    log_message(_time=time.localtime(), customer=customer['CLIENTE'], receiver=customer['TELEFONO'],
-                message=customer['MENSAJE'])
+    log_sent_message(_time=time.localtime(), customer=customer['CLIENTE'], phone_number=customer['TELEFONO'],
+                     message=customer['MENSAJE'])
 
     if close_tab_after_send:
         core.close_tab(wait_time=CLOSE_TAB_WAIT_TIME)
@@ -155,25 +175,19 @@ def print_customers(vendor: str, dict_customer: list[dict]):
         print()
 
 
-# Obtain customers for Edge and Chrome browsers
-df_customers = get_info_of_customers('0', 'Hoy', '1', 'Mañana')
+# >>>>>>>>>>   MAIN   <<<<<<<<<< #
 
-vendor_initials_edge = 'BGL'
-vendor_initials_chrome = 'SAG'
+df_customers = get_info_of_customers(IDX_DAY_CUST, MSG_DAY_CUST, IDX_DAY_RES, MSG_DAY_RES)
 
-# Filter customers by vendor
-customers_edge = filter_data_by_vendor(vendor_initials_edge, df_customers)
-customers_chrome = filter_data_by_vendor(vendor_initials_chrome, df_customers)
+customers_edge = filter_data_by_vendor(VEND_INI_EDGE, df_customers)
+customers_chrome = filter_data_by_vendor(VEND_INI_CHROME, df_customers)
 
-# Calculate total time to send messages to all customers
 total_time = calculate_total_time(customers_edge, customers_chrome)
 total_customers = df_customers.shape[0]
 
-# Print customer information for Edge and Chrome browsers
-print_customers(vendor_initials_edge, customers_edge)
-print_customers(vendor_initials_chrome, customers_chrome)
+print_customers(VEND_INI_EDGE, customers_edge)
+print_customers(VEND_INI_CHROME, customers_chrome)
 
-# Show confirmation dialog and proceed based on user input
 if show_confirmation_dialog(total_customers, total_time):
     send_messages_to_customers(customers_edge, EDGE_PATH)
     send_messages_to_customers(customers_chrome, CHROME_PATH)
@@ -181,3 +195,5 @@ else:
     print("Program canceled by user.")
 
 show_end_dialog()
+
+# >>>>>>>>>>   END   <<<<<<<<<< #

@@ -2,6 +2,10 @@ import gspread as gs
 from google.oauth2.service_account import Credentials
 from pandas import DataFrame, concat
 
+SPREADSHEET_TITLE = 'Servicios'
+WORKSHEET_TITLE = 'Ventas'
+CREDS_FILE = 'C:/Users/sanaf/Dev/PyCharm/browser/files/gsheets-access-key-service-account.json'
+
 
 def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     """
@@ -25,13 +29,9 @@ def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     # Authorize access to Google Sheets using the credentials
     gc = gs.authorize(credentials)
 
-    # Title of the Google Spreadsheet and Worksheet
-    spreadsheet_title = 'Servicios'
-    worksheet_title = 'Ventas'
-
     # Open the Google Spreadsheet and select the Worksheet
-    sh = gc.open(spreadsheet_title)
-    worksheet = sh.worksheet(worksheet_title)
+    sh = gc.open(SPREADSHEET_TITLE)
+    worksheet = sh.worksheet(WORKSHEET_TITLE)
 
     return worksheet
 
@@ -228,9 +228,14 @@ def get_info_of_customers(
     """
     Retrieve and process customer data from a Google Spreadsheet.
 
+    Parameters:
+        index_day_customers (str): The index of the day for customers.
+        message_day_customers (str): The message for customers on that day.
+        index_day_reseller (str): The index of the day for resellers.
+        message_day_resellers (str): The message for resellers on that day.
+
     Returns:
-    tuple[list[dict[str, str]], list[dict[str, str]]]: A tuple containing dictionaries of customer data
-    for BGL and SAG vendors respectively.
+        DataFrame: A DataFrame containing processed data of customers and resellers.
     """
 
     # Variables
@@ -238,7 +243,7 @@ def get_info_of_customers(
     final_columns = ['VENDEDOR', 'CLIENTE', 'TELEFONO', 'MENSAJE']
 
     # Get the worksheet
-    ws = get_worksheet('C:/Users/sanaf/Dev/PyCharm/browser/files/gsheets-access-key-service-account.json')
+    ws = get_worksheet(CREDS_FILE)
 
     # Get all values from the worksheet
     data = ws.get_all_values()
@@ -269,4 +274,5 @@ def get_info_of_customers(
 
 
 def filter_data_by_vendor(initials: str, df_data: DataFrame) -> list[dict[any, any]]:
-    return df_data[df_data['VENDEDOR'] == initials].to_dict('records')
+    df_by_vendor = df_data[df_data['VENDEDOR'] == initials]
+    return df_by_vendor.to_dict('records')
