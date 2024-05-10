@@ -5,20 +5,21 @@ from tkinter import messagebox
 from urllib.parse import quote
 
 import pyautogui as pg
+from decouple import config
 from pandas import DataFrame
 from pywhatkit.core import core, exceptions
 
 from data import get_info_of_customers, filter_data_by_vendor
 
-CHROME_PATH = f'C:/Program Files/Google/Chrome/Application/chrome.exe'
-EDGE_PATH = f'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+CHROME_PATH = config('CHROME_PATH')
+EDGE_PATH = config('EDGE_PATH')
 
 WAIT_TIME_PER_CUSTOMER: int = 15  # Time to wait before sending the message
 CLOSE_TAB_WAIT_TIME: int = 2  # Time to wait before closing the tab
 
-IDX_DAY_CUST = '0'
+IDX_DAY_CUST = '1'
 MSG_DAY_CUST = 'Hoy'
-IDX_DAY_RES = '1'
+IDX_DAY_RES = '2'
 MSG_DAY_RES = 'Mañana'
 
 VEND_INI_EDGE = 'BGL'

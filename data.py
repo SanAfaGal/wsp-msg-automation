@@ -1,11 +1,11 @@
 import gspread as gs
+from decouple import config
 from google.oauth2.service_account import Credentials
 from pandas import DataFrame, concat
 
 SPREADSHEET_TITLE = 'Servicios'
 WORKSHEET_TITLE = 'Ventas'
-CREDS_FILE = 'C:/Users/sanaf/Dev/PyCharm/browser/files/gsheets-access-key-service-account.json'
-
+CREDS_PATH = config('CREDS_PATH')
 
 def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     """
@@ -243,7 +243,7 @@ def get_info_of_customers(
     final_columns = ['VENDEDOR', 'CLIENTE', 'TELEFONO', 'MENSAJE']
 
     # Get the worksheet
-    ws = get_worksheet(CREDS_FILE)
+    ws = get_worksheet(CREDS_PATH)
 
     # Get all values from the worksheet
     data = ws.get_all_values()
