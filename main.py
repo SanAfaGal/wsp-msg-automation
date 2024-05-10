@@ -5,6 +5,7 @@ from tkinter import messagebox
 from urllib.parse import quote
 
 import pyautogui as pg
+from pandas import DataFrame
 from pywhatkit.core import core, exceptions
 
 from data import get_info_of_customers, filter_data_by_vendor
@@ -154,6 +155,29 @@ def show_end_dialog() -> str:
     return messagebox.showinfo("Notificación", "El programa ha finalizado.")
 
 
+def save_info_as_csv(df: DataFrame) -> None:
+    """
+        Saves a DataFrame to a CSV file.
+
+        Parameters:
+            df (DataFrame): The DataFrame to be saved as a CSV file.
+
+        Returns:
+            None
+        """
+
+    _time = time.localtime()
+
+    folder_path = "csv"
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    file_path = os.path.join(folder_path, f'{_time.tm_mday}_{_time.tm_mon}_{_time.tm_year}.csv')
+
+    df.to_csv(file_path)
+
+
 def print_customers(vendor: str, dict_customer: list[dict]):
     """
     Print customer information for a specific vendor.
@@ -178,6 +202,7 @@ def print_customers(vendor: str, dict_customer: list[dict]):
 # >>>>>>>>>>   MAIN   <<<<<<<<<< #
 
 df_customers = get_info_of_customers(IDX_DAY_CUST, MSG_DAY_CUST, IDX_DAY_RES, MSG_DAY_RES)
+save_info_as_csv(df_customers)
 
 customers_edge = filter_data_by_vendor(VEND_INI_EDGE, df_customers)
 customers_chrome = filter_data_by_vendor(VEND_INI_CHROME, df_customers)
