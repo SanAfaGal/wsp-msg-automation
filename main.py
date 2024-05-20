@@ -17,10 +17,10 @@ EDGE_PATH = config('EDGE_PATH')
 WAIT_TIME_PER_CUSTOMER: int = 15  # Time to wait before sending the message
 CLOSE_TAB_WAIT_TIME: int = 2  # Time to wait before closing the tab
 
-IDX_DAY_CUST = '1'
-MSG_DAY_CUST = 'Hoy'
-IDX_DAY_RES = '2'
-MSG_DAY_RES = 'Mañana'
+IDX_DAY_CUST = '0'
+MSG_DAY_CUST = 'Hoy empezó'
+IDX_DAY_RES = '1'
+MSG_DAY_RES = 'Mañana empieza'
 
 VEND_INI_EDGE = 'BGL'
 VEND_INI_CHROME = 'SAG'

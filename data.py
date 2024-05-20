@@ -1,5 +1,5 @@
 import gspread as gs
-from decouple import config
+from decouple import config, Csv
 from google.oauth2.service_account import Credentials
 from pandas import DataFrame, concat
 
@@ -14,10 +14,12 @@ def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     Returns:
         gspread.Worksheet: Worksheet for processing.
     """
+
+    spreadsheet_title = config('SPREADSHEET_TITLE')
+    worksheet_title = config('WORKSHEET_TITLE')
+
     # List of required scopes to authorize access to Google Sheets and Google Drive
-    spreadsheet = config('SPREADSHEET_TITLE')
-    worksheet = config('WORKSHEET_TITLE')
-    access_scopes = config('ACCESS_SCOPES')
+    access_scopes = config('ACCESS_SCOPES', cast=Csv())
 
     # Create access credentials using the service account JSON file
     credentials = Credentials.from_service_account_file(credentials_file_path, scopes=access_scopes)
@@ -26,8 +28,8 @@ def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     gc = gs.authorize(credentials)
 
     # Open the Google Spreadsheet and select the Worksheet
-    sh = gc.open(spreadsheet)
-    worksheet = sh.worksheet(worksheet)
+    sh = gc.open(spreadsheet_title)
+    worksheet = sh.worksheet(worksheet_title)
 
     return worksheet
 
