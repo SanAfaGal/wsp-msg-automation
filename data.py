@@ -3,9 +3,6 @@ from decouple import config
 from google.oauth2.service_account import Credentials
 from pandas import DataFrame, concat
 
-SPREADSHEET_TITLE = 'Servicios'
-WORKSHEET_TITLE = 'Ventas'
-CREDS_PATH = config('CREDS_PATH')
 
 def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     """
@@ -18,10 +15,9 @@ def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
         gspread.Worksheet: Worksheet for processing.
     """
     # List of required scopes to authorize access to Google Sheets and Google Drive
-    access_scopes = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive'
-    ]
+    spreadsheet = config('SPREADSHEET_TITLE')
+    worksheet = config('WORKSHEET_TITLE')
+    access_scopes = config('ACCESS_SCOPES')
 
     # Create access credentials using the service account JSON file
     credentials = Credentials.from_service_account_file(credentials_file_path, scopes=access_scopes)
@@ -30,8 +26,8 @@ def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     gc = gs.authorize(credentials)
 
     # Open the Google Spreadsheet and select the Worksheet
-    sh = gc.open(SPREADSHEET_TITLE)
-    worksheet = sh.worksheet(WORKSHEET_TITLE)
+    sh = gc.open(spreadsheet)
+    worksheet = sh.worksheet(worksheet)
 
     return worksheet
 
@@ -147,9 +143,10 @@ def add_message_column(df_grouped: DataFrame, day_str: str) -> DataFrame:
     """
 
     df_grouped['NOMBRE'] = df_grouped['CLIENTE'].str.split().str[0]
-    df_grouped['MENSAJE'] = 'Hola, ' + df_grouped['NOMBRE'] + '. Buen día. ' + day_str + ' empieza otro mes de ' + \
+    df_grouped['MENSAJE'] = 'Hola, ' + df_grouped['NOMBRE'] + '. Buen día. ' + day_str + ' otro mes de ' + \
                             df_grouped[
-                                'SERVICIO'] + '. Me confirma porfa si todo le funciona correctamente y si desea continuar con el servicio.'
+                                'SERVICIO'] + ('. Me confirma porfa si todo le funciona correctamente y si desea '
+                                               'continuar con el servicio.')
 
     return df_grouped
 
@@ -237,13 +234,14 @@ def get_info_of_customers(
     Returns:
         DataFrame: A DataFrame containing processed data of customers and resellers.
     """
+    creds_path = config('CREDS_PATH')
 
     # Variables
     desired_columns = ['WSP', 'PLAT.', 'CLIENTE', 'PERFIL', 'INDICATIVO', 'CONTACTO', 'VALOR', 'DIAS']
     final_columns = ['VENDEDOR', 'CLIENTE', 'TELEFONO', 'MENSAJE']
 
     # Get the worksheet
-    ws = get_worksheet(CREDS_PATH)
+    ws = get_worksheet(creds_path)
 
     # Get all values from the worksheet
     data = ws.get_all_values()
