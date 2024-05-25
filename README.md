@@ -30,9 +30,13 @@ The project at hand is an application designed to manage and analyze customer an
 - Ensure that the name of the Google Sheet contains no spaces.
 - Make sure that the sheet is not set to private access only.
 
-
-## <span style="color: #FF0000;">TO DO</span>:
-1. [ ] Create a class to manage custom exceptions
-2. [x] Display the number of customers by seller
-3. [ ] Verify if the message was sent successfully
-4. [x] Save logs to a file daily and display them at the end
+## Environment Variables:
+Make sure you have the follow variables in your .env:
+```
+CHROME_PATH='.exe'
+EDGE_PATH'.exe'
+CREDS_PATH='.json'
+SPREADSHEET_TITLE='SpreadSheet'
+WORKSHEET_TITLE='WorkSheet'
+ACCESS_SCOPES='scope_one,scope_two'
+```
