@@ -19,7 +19,6 @@ The project at hand is an application designed to manage and analyze customer an
 13. Select the JSON type.
 14. Open the Google Sheets file and share access with the <span style="color: #007bff;">client_email</span> of the service account
 
-
 ## Docs
 
 - [Service Account Documentation](https://cloud.google.com/iam/docs/service-account-overview)
@@ -29,6 +28,14 @@ The project at hand is an application designed to manage and analyze customer an
 
 - Ensure that the name of the Google Sheet contains no spaces.
 - Make sure that the sheet is not set to private access only.
+
+## Run
+Create a virtual environment and install packages:
+```
+python -m venv env
+.\env\Scripts\activate
+pip install -r requirements.txt
+```
 
 ## Environment Variables:
 Make sure you have the follow variables in your .env:
