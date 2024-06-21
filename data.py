@@ -101,8 +101,11 @@ def clean_data(df: DataFrame, desired_columns: list[str]) -> DataFrame:
     # Remove the dollar sign /'$'/ from 'VALOR' column and convert it to float
     df_cleaned['VALOR'] = df_cleaned['VALOR'].str.replace('$', '').astype(float)
 
+    # Convert 'CORTE' column to bool
+    df_cleaned['CORTE'] = df_cleaned['CORTE'].map({'TRUE': True, 'FALSE': False}).astype(bool)
+
     # Filter out rows where 'VALOR' is greater than 0 and 'CORTE' is not true
-    df_cleaned = df_cleaned[(df_cleaned['VALOR'] > 0) & (df_cleaned['CORTE'] == 'FALSE')]
+    df_cleaned = df_cleaned[(df_cleaned['VALOR'] > 0) & (~df_cleaned['CORTE'])]
 
     # Drop the 'VALOR' column
     df_cleaned.drop(columns=['VALOR'], inplace=True)
