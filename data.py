@@ -101,8 +101,8 @@ def clean_data(df: DataFrame, desired_columns: list[str]) -> DataFrame:
     # Remove the dollar sign /'$'/ from 'VALOR' column and convert it to float
     df_cleaned['VALOR'] = df_cleaned['VALOR'].str.replace('$', '').astype(float)
 
-    # Filter out rows where 'VALOR' is not greater than 0
-    df_cleaned = df_cleaned[df_cleaned['VALOR'] > 0]
+    # Filter out rows where 'VALOR' is greater than 0 and 'CORTE' is not true
+    df_cleaned = df_cleaned[(df_cleaned['VALOR'] > 0) & (df_cleaned['CORTE'] == 'FALSE')]
 
     # Drop the 'VALOR' column
     df_cleaned.drop(columns=['VALOR'], inplace=True)
@@ -145,7 +145,8 @@ def add_message_column(df_grouped: DataFrame, day_str: str) -> DataFrame:
     """
 
     df_grouped['NOMBRE'] = df_grouped['CLIENTE'].str.split().str[0]
-    df_grouped['MENSAJE'] = 'Hola, ' + df_grouped['NOMBRE'] + '. Buen día. ' + day_str + ' otro mes de ' + df_grouped['SERVICIO'] + '. ¿Desea continuar?'
+    df_grouped['MENSAJE'] = 'Hola, ' + df_grouped['NOMBRE'] + '. Buen día. ' + day_str + ' otro mes de ' + df_grouped[
+        'SERVICIO'] + '. ¿Desea continuar?'
 
     return df_grouped
 
@@ -236,7 +237,7 @@ def get_info_of_customers(
     creds_path = config('CREDS_PATH')
 
     # Variables
-    desired_columns = ['WSP', 'PLAT.', 'CLIENTE', 'PERFIL', 'INDICATIVO', 'CONTACTO', 'VALOR', 'DIAS']
+    desired_columns = ['WSP', 'PLAT.', 'CORTE', 'CLIENTE', 'PERFIL', 'INDICATIVO', 'CONTACTO', 'VALOR', 'DIAS']
     final_columns = ['VENDEDOR', 'CLIENTE', 'TELEFONO', 'MENSAJE']
 
     # Get the worksheet
