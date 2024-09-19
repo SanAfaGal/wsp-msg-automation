@@ -123,11 +123,11 @@ def process_data(df_filtered: DataFrame) -> DataFrame:
     Returns:
         DataFrame: Processed DataFrame.
     """
-    df_grouped = df_filtered.groupby(['VENDEDOR', 'CLIENTE', 'PLATAFORMA', 'TELEFONO'])['PERFIL'].unique().str.join(
+    df_grouped = df_filtered.groupby(['VENDEDOR', 'CLIENTE', 'PLATAFORMA', 'TELEFONO'])['PANTALLA'].unique().str.join(
         ' & ').reset_index()
 
     # Create 'SERVICIO' column
-    df_grouped['SERVICIO'] = '*' + df_grouped['PLATAFORMA'] + '*: _' + df_grouped['PERFIL'] + '_'
+    df_grouped['SERVICIO'] = '*' + df_grouped['PLATAFORMA'] + '*: _' + df_grouped['PANTALLA'] + '_'
 
     # Group by 'CLIENTE' and 'TELEFONO', concatenate values of 'SERVICIO' for each group using ' ▪️ '
     df_grouped = df_grouped.groupby(['VENDEDOR', 'CLIENTE', 'TELEFONO'])['SERVICIO'].apply(' ▪️ '.join).reset_index()
@@ -240,7 +240,7 @@ def get_info_of_customers(
     creds_path = config('CREDS_PATH')
 
     # Variables
-    desired_columns = ['WSP', 'PLAT.', 'CORTE', 'CLIENTE', 'PERFIL', 'INDICATIVO', 'CONTACTO', 'VALOR', 'DIAS']
+    desired_columns = ['WSP', 'PLAT.', 'CORTE', 'CLIENTE', 'PANTALLA', 'INDICATIVO', 'CONTACTO', 'VALOR', 'DIAS']
     final_columns = ['VENDEDOR', 'CLIENTE', 'TELEFONO', 'MENSAJE']
 
     # Get the worksheet
