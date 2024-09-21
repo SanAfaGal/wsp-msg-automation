@@ -32,8 +32,22 @@ The project at hand is an application designed to manage and analyze customer an
 ## Run
 Create a virtual environment and install packages:
 ```
+# Creates a virtual environment named `env` in the current directory
 python -m venv env
+
+# Activates the virtual environment (Windows)
 .\env\Scripts\activate
+
+# Upgrades the core Python packaging tools
+pip install --upgrade pip setuptools wheel
+
+# (Optional) Lists all outdated packages, extracts the package names, and saves them to a file named `outdated.txt`
+pip list --outdated --format=columns | tail -n +3 | awk '{print $1}' > outdated.txt
+
+# (Optional) Upgrades all the packages listed in `outdated.txt` to their latest versions
+pip install --upgrade -r outdated.txt
+
+# Installs all the dependencies specified in the `requirements.txt` file
 pip install -r requirements.txt
 ```
 
