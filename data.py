@@ -1,37 +1,23 @@
 import gspread as gs
-from decouple import config, Csv
-from google.oauth2.service_account import Credentials
 from pandas import DataFrame, concat
 
+from config.settings import CREDS_PATH, WORKSHEET_TITLE, SPREADSHEET_TITLE
+from google_sheets.sheets_client import GoogleSheetsClient
 
+
+# Helper function to quickly access a worksheet
 def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
     """
-    Get the Google Spreadsheet worksheet for processing.
+    Retrieves the configured worksheet using credentials from the environment variables.
 
-    Args:
-        credentials_file_path (str): Path to the credentials JSON file
-
-    Returns:
-        gspread.Worksheet: Worksheet for processing.
+    :param credentials_file_path: Path to the service account credentials file.
+    :return: A gspread Worksheet object.
+    :raises Exception: If worksheet retrieval fails.
     """
 
-    spreadsheet_title = config('SPREADSHEET_TITLE')
-    worksheet_title = config('WORKSHEET_TITLE')
-
-    # List of required scopes to authorize access to Google Sheets and Google Drive
-    access_scopes = config('ACCESS_SCOPES', cast=Csv())
-
-    # Create access credentials using the service account JSON file
-    credentials = Credentials.from_service_account_file(credentials_file_path, scopes=access_scopes)
-
-    # Authorize access to Google Sheets using the credentials
-    gc = gs.authorize(credentials)
-
-    # Open the Google Spreadsheet and select the Worksheet
-    sh = gc.open(spreadsheet_title)
-    worksheet = sh.worksheet(worksheet_title)
-
-    return worksheet
+    # Create a GoogleSheetsClient instance and retrieve the worksheet
+    client = GoogleSheetsClient(credentials_file_path)
+    return client.get_worksheet(WORKSHEET_TITLE, SPREADSHEET_TITLE)
 
 
 def get_dataframe_by_range_name(worksheet: gs.Worksheet, range_name: str) -> DataFrame:
@@ -237,14 +223,12 @@ def get_info_of_customers(
     Returns:
         DataFrame: A DataFrame containing processed data of customers and resellers.
     """
-    creds_path = config('CREDS_PATH')
-
     # Variables
     desired_columns = ['WSP', 'PLAT.', 'CORTE', 'CLIENTE', 'PANTALLA', 'INDICATIVO', 'CONTACTO', 'VALOR', 'DIAS']
     final_columns = ['VENDEDOR', 'CLIENTE', 'TELEFONO', 'MENSAJE']
 
     # Get the worksheet
-    ws = get_worksheet(creds_path)
+    ws = get_worksheet(CREDS_PATH)
 
     # Get all values from the worksheet
     data = ws.get_all_values()
