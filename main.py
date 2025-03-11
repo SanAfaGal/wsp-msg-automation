@@ -11,16 +11,14 @@ from pywhatkit.core import core, exceptions
 
 from data import get_info_of_customers, filter_data_by_vendor
 
-CHROME_PATH = config('CHROME_PATH')
-EDGE_PATH = config('EDGE_PATH')
+WSP_SAG = config('BRAVE_PATH')
+WSP_BGL = config('EDGE_PATH')
 
 WAIT_TIME_PER_CUSTOMER: int = 15  # Time to wait before sending the message
 CLOSE_TAB_WAIT_TIME: int = 2  # Time to wait before closing the tab
 
-IDX_DAY_CUST = '0'
-MSG_DAY_CUST = 'Hoy empezó'
-IDX_DAY_RES = '1'
-MSG_DAY_RES = 'Mañana empieza'
+IDX_DAY_CUST = '1'
+MSG_DAY_CUST = 'Mañana empieza'
 
 VEND_INI_EDGE = 'BGL'
 VEND_INI_CHROME = 'SAG'
@@ -60,7 +58,7 @@ def log_sent_message(_time: time.struct_time, customer: str, phone_number: str, 
 def send_wsp_msg(
         customer: dict,
         close_tab_after_send: bool = False,
-        browser_path: str = EDGE_PATH
+        browser_path: str = None
 ) -> None:
     """
     Send WhatsApp message instantly.
@@ -88,7 +86,7 @@ def send_wsp_msg(
     # Wait for the specified time (minus 5 seconds) before sending the message
     time.sleep(WAIT_TIME_PER_CUSTOMER - 5)
     # Simulate pressing the 'Enter' key to send the message
-    pg.press("enter")
+    # pg.press("enter")
     # Log the sent message along with the current timestamp, receiver's phone number, and message content
     log_sent_message(_time=time.localtime(), customer=customer['CLIENTE'], phone_number=customer['TELEFONO'],
                      message=customer['MENSAJE'])
@@ -202,21 +200,21 @@ def print_customers(vendor: str, dict_customer: list[dict]):
 
 # >>>>>>>>>>   MAIN   <<<<<<<<<< #
 
-df_customers = get_info_of_customers(IDX_DAY_CUST, MSG_DAY_CUST, IDX_DAY_RES, MSG_DAY_RES)
+df_customers = get_info_of_customers(IDX_DAY_CUST, MSG_DAY_CUST)
 save_info_as_csv(df_customers)
 
-customers_edge = filter_data_by_vendor(VEND_INI_EDGE, df_customers)
-customers_chrome = filter_data_by_vendor(VEND_INI_CHROME, df_customers)
+customers_bgl = filter_data_by_vendor(VEND_INI_EDGE, df_customers)
+customers_sag = filter_data_by_vendor(VEND_INI_CHROME, df_customers)
 
-total_time = calculate_total_time(customers_edge, customers_chrome)
+total_time = calculate_total_time(customers_bgl, customers_sag)
 total_customers = df_customers.shape[0]
 
-print_customers(VEND_INI_EDGE, customers_edge)
-print_customers(VEND_INI_CHROME, customers_chrome)
+print_customers(VEND_INI_EDGE, customers_bgl)
+print_customers(VEND_INI_CHROME, customers_sag)
 
 if show_confirmation_dialog(total_customers, total_time):
-    send_messages_to_customers(customers_edge, EDGE_PATH)
-    send_messages_to_customers(customers_chrome, CHROME_PATH)
+    send_messages_to_customers(customers_bgl, WSP_BGL)
+    send_messages_to_customers(customers_sag, WSP_SAG)
 else:
     print("Program canceled by user.")
 
