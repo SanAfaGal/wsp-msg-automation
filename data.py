@@ -1,7 +1,7 @@
 import gspread as gs
 from pandas import DataFrame, concat
 
-from config.settings import CREDS_PATH, WORKSHEET_TITLE, SPREADSHEET_TITLE
+from config.settings import CREDS_PATH, WORKSHEET_TITLE, SPREADSHEET_TITLE, DESIRED_COLUMNS, FINAL_COLUMNS
 from google_sheets.sheets_client import GoogleSheetsClient
 
 
@@ -17,7 +17,7 @@ def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
 
     # Create a GoogleSheetsClient instance and retrieve the worksheet
     client = GoogleSheetsClient(credentials_file_path)
-    return client.get_worksheet(WORKSHEET_TITLE, SPREADSHEET_TITLE)
+    return client.get_worksheet(SPREADSHEET_TITLE, WORKSHEET_TITLE)
 
 
 def get_dataframe_by_range_name(worksheet: gs.Worksheet, range_name: str) -> DataFrame:
@@ -59,21 +59,26 @@ def add_phone_column(df: DataFrame) -> DataFrame:
 
 def clean_data(df: DataFrame, desired_columns: list[str]) -> DataFrame:
     """
-    Clean and filter the DataFrame.
+    Cleans and filters the given DataFrame.
 
     Args:
-        df (DataFrame): DataFrame containing the original data.
-        desired_columns (List[str]): List of column names to keep.
+        df (DataFrame): Input DataFrame containing the raw data.
+        desired_columns (List[str]): List of required column names.
 
     Returns:
-        DataFrame: Cleaned DataFrame.
+        DataFrame: A cleaned and filtered DataFrame.
 
     Raises:
-        Exception: If the input DataFrame is empty.
+        ValueError: If the input DataFrame is empty.
+        KeyError: If any desired column is missing from the DataFrame.
     """
-    # Check if the input DataFrame is empty
     if df.empty:
-        raise Exception("Input DataFrame is empty")
+        raise ValueError("Input DataFrame is empty")
+
+    # Ensure all required columns exist
+    missing_columns = [col for col in desired_columns if col not in df.columns]
+    if missing_columns:
+        raise KeyError(f"Missing required columns: {missing_columns}")
 
     # Copy the DataFrame and keep only the desired columns
     df_cleaned = df[desired_columns].copy()
@@ -84,11 +89,13 @@ def clean_data(df: DataFrame, desired_columns: list[str]) -> DataFrame:
     # Rename columns 'WSP' to 'VENDEDOR' and 'PLAT.' to 'PLATAFORMA'
     df_cleaned = df_cleaned.rename(columns={'WSP': 'VENDEDOR', 'PLAT.': 'PLATAFORMA'})
 
-    # Remove the dollar sign /'$'/ from 'VALOR' column and convert it to float
-    df_cleaned['VALOR'] = df_cleaned['VALOR'].str.replace('$', '').astype(float)
+    if 'VALOR' in df_cleaned.columns:
+        # Remove the dollar sign /'$'/ from 'VALOR' column and convert it to float
+        df_cleaned['VALOR'] = df_cleaned['VALOR'].str.replace('$', '').astype(float)
 
-    # Convert 'CORTE' column to bool
-    df_cleaned['CORTE'] = df_cleaned['CORTE'].map({'TRUE': True, 'FALSE': False}).astype(bool)
+    if 'CORTE' in df_cleaned.columns:
+        # Convert 'CORTE' column to bool
+        df_cleaned['CORTE'] = df_cleaned['CORTE'].map({'TRUE': True, 'FALSE': False}).astype(bool)
 
     # Filter out rows where 'VALOR' is greater than 0 and 'CORTE' is not true
     df_cleaned = df_cleaned[(df_cleaned['VALOR'] > 0) & (~df_cleaned['CORTE'])]
@@ -187,7 +194,7 @@ def filter_data_by_day(df_data: DataFrame, day: str) -> DataFrame:
 
 def process_data_by_type(data_by_type: dict, day_indicator: str, message_day: str) -> dict:
     """
-    Process data for each type of user (resellers or sellers) by filtering it based on the day,
+    Process data by filtering it based on the day,
     processing it, and adding a message column with the specified day.
 
     Args:
