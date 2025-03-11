@@ -208,24 +208,17 @@ def process_data_by_type(data_by_type: dict, day_indicator: str, message_day: st
 
 def get_info_of_customers(
         index_day_customers: str,
-        message_day_customers: str,
-        index_day_reseller: str,
-        message_day_resellers: str) -> DataFrame:
+        message_day_customers: str, ) -> DataFrame:
     """
     Retrieve and process customer data from a Google Spreadsheet.
 
     Parameters:
         index_day_customers (str): The index of the day for customers.
         message_day_customers (str): The message for customers on that day.
-        index_day_reseller (str): The index of the day for resellers.
-        message_day_resellers (str): The message for resellers on that day.
 
     Returns:
         DataFrame: A DataFrame containing processed data of customers and resellers.
     """
-    # Variables
-    desired_columns = ['WSP', 'PLAT.', 'CORTE', 'CLIENTE', 'PANTALLA', 'INDICATIVO', 'CONTACTO', 'VALOR', 'DIAS']
-    final_columns = ['VENDEDOR', 'CLIENTE', 'TELEFONO', 'MENSAJE']
 
     # Get the worksheet
     ws = get_worksheet(CREDS_PATH)
@@ -234,28 +227,25 @@ def get_info_of_customers(
     data = ws.get_all_values()
 
     # Create DataFrames for sellers and resellers
-    df_customers = get_dataframe_by_range_name(ws, 'Vendedores')
-    df_resellers = get_dataframe_by_range_name(ws, 'Revendedores')
+    df_sellers = get_dataframe_by_range_name(ws, 'Vendedores')
 
     # Create the original DataFrame from the retrieved data
-    df_original = DataFrame(data[3:], columns=data[2])
+    df = DataFrame(data[3:], columns=data[2])
 
     # Clean the original DataFrame
-    df_cleaned = clean_data(df_original, desired_columns)
+    df_cleaned = clean_data(df, DESIRED_COLUMNS)
 
     # Get data for sellers and resellers
-    df_data_by_customers = filter_data_by_user_type(df_cleaned, df_customers, 'seller')
-    df_data_by_resellers = filter_data_by_user_type(df_cleaned, df_resellers, 'reseller')
+    df_data_by_customers = filter_data_by_user_type(df_cleaned, df_sellers, 'seller')
 
     # Process data for sellers and resellers
     processed_data_customers = process_data_by_type(df_data_by_customers, index_day_customers, message_day_customers)
-    processed_data_resellers = process_data_by_type(df_data_by_resellers, index_day_reseller, message_day_resellers)
 
     # Concatenate DataFrames of resellers and sellers into one DataFrame
-    df_combined = concat(list(processed_data_resellers.values()) + list(processed_data_customers.values()),
-                         ignore_index=True)[final_columns]
+    df_costumers = concat(list(processed_data_customers.values()),
+                          ignore_index=True)[FINAL_COLUMNS]
 
-    return df_combined
+    return df_costumers
 
 
 def filter_data_by_vendor(initials: str, df_data: DataFrame) -> list[dict[any, any]]:
