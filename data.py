@@ -107,6 +107,7 @@ def clean_data(df: DataFrame, desired_columns: List[str]) -> DataFrame:
     Raises:
         ValueError: If the input DataFrame is empty.
         KeyError: If any desired column is missing from the DataFrame.
+        ValueError: If there are invalid values in the data.
     """
     if df.empty:
         raise ValueError("Input DataFrame is empty")
@@ -125,15 +126,29 @@ def clean_data(df: DataFrame, desired_columns: List[str]) -> DataFrame:
 
         # Process 'VALOR' column if exists
         if 'VALOR' in df_cleaned.columns:
-            df_cleaned['VALOR'] = df_cleaned['VALOR'].str.replace('$', '').astype(float)
+            try:
+                # Replace empty strings with NaN
+                df_cleaned['VALOR'] = df_cleaned['VALOR'].replace('', pd.NA)
+                # Remove dollar sign and convert to float, handling NaN values
+                df_cleaned['VALOR'] = df_cleaned['VALOR'].str.replace('$', '').astype(float)
+            except (ValueError, TypeError) as e:
+                raise ValueError(f"Error processing 'VALOR' column: Invalid numeric values found. Details: {str(e)}")
 
         # Process 'CORTE' column if exists
         if 'CORTE' in df_cleaned.columns:
-            df_cleaned['CORTE'] = df_cleaned['CORTE'].map({'TRUE': True, 'FALSE': False}).astype(bool)
+            try:
+                # Handle empty strings and invalid values
+                df_cleaned['CORTE'] = df_cleaned['CORTE'].replace('', pd.NA)
+                df_cleaned['CORTE'] = df_cleaned['CORTE'].map({'TRUE': True, 'FALSE': False, pd.NA: False}).astype(bool)
+            except (ValueError, TypeError) as e:
+                raise ValueError(f"Error processing 'CORTE' column: Invalid boolean values found. Details: {str(e)}")
 
         # Filter data
-        mask = (df_cleaned['VALOR'] > 0) & (~df_cleaned['CORTE'])
-        df_cleaned = df_cleaned[mask].drop(columns=['VALOR'])
+        try:
+            mask = (df_cleaned['VALOR'] > 0) & (~df_cleaned['CORTE'])
+            df_cleaned = df_cleaned[mask].drop(columns=['VALOR'])
+        except Exception as e:
+            raise ValueError(f"Error filtering data: {str(e)}")
 
         return df_cleaned
     except Exception as e:
@@ -303,6 +318,7 @@ def get_info_of_customers(index_day_customers: str, message_day_customers: str) 
     Raises:
         FileNotFoundError: If credentials file is not found.
         ValueError: If data processing fails.
+        gspread.exceptions.APIError: If there's an error accessing Google Sheets.
     """
     try:
         # Get the worksheet
@@ -310,30 +326,57 @@ def get_info_of_customers(index_day_customers: str, message_day_customers: str) 
 
         # Get all values from the worksheet
         data = ws.get_all_values()
+        if not data or len(data) < 4:
+            raise ValueError("Invalid worksheet data: insufficient rows")
 
         # Create DataFrames for sellers and resellers
-        df_sellers = get_dataframe_by_range_name(ws, 'Vendedores')
+        try:
+            df_sellers = get_dataframe_by_range_name(ws, 'Vendedores')
+        except Exception as e:
+            raise ValueError(f"Error processing sellers data: {str(e)}")
 
         # Create the original DataFrame from the retrieved data
         df = DataFrame(data[3:], columns=data[2])
+        if df.empty:
+            raise ValueError("No customer data found in worksheet")
 
         # Clean the original DataFrame
-        df_cleaned = clean_data(df, DESIRED_COLUMNS)
+        try:
+            df_cleaned = clean_data(df, DESIRED_COLUMNS)
+        except Exception as e:
+            raise ValueError(f"Error cleaning customer data: {str(e)}")
 
         # Get data for sellers and resellers
-        df_data_by_customers = filter_data_by_user_type(df_cleaned, df_sellers, 'seller')
+        try:
+            df_data_by_customers = filter_data_by_user_type(df_cleaned, df_sellers, 'seller')
+        except Exception as e:
+            raise ValueError(f"Error filtering data by user type: {str(e)}")
 
         # Process data for sellers and resellers
-        processed_data_customers = process_data_by_type(
-            df_data_by_customers,
-            index_day_customers,
-            message_day_customers
-        )
+        try:
+            processed_data_customers = process_data_by_type(
+                df_data_by_customers,
+                index_day_customers,
+                message_day_customers
+            )
+        except Exception as e:
+            raise ValueError(f"Error processing data by type: {str(e)}")
 
         # Combine all processed data into a single DataFrame
-        return pd.concat(processed_data_customers.values(), ignore_index=True)
+        try:
+            result_df = pd.concat(processed_data_customers.values(), ignore_index=True)
+            if result_df.empty:
+                raise ValueError("No valid data after processing")
+            return result_df
+        except Exception as e:
+            raise ValueError(f"Error combining processed data: {str(e)}")
+
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Credentials file not found: {str(e)}")
+    except gs.exceptions.APIError as e:
+        raise gs.exceptions.APIError(f"Google Sheets API error: {str(e)}")
     except Exception as e:
-        raise ValueError(f"Error getting customer info: {str(e)}")
+        raise ValueError(f"Unexpected error in get_info_of_customers: {str(e)}")
 
 
 def filter_data_by_vendor(initials: str, df_data: DataFrame) -> list[dict[any, any]]:
