@@ -1,38 +1,34 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List
 import pandas as pd
 import gspread as gs
-from pandas import DataFrame, concat
-from decouple import config
+from pandas import DataFrame
 
 from config.settings import (
-    CREDS_PATH,
+    CREDENTIALS_PATH,
     WORKSHEET_TITLE,
     SPREADSHEET_TITLE,
     DESIRED_COLUMNS,
-    FINAL_COLUMNS
+    ACCESS_SCOPES
 )
 from google_sheets.sheets_client import GoogleSheetsClient
 
 
-def get_worksheet(credentials_file_path: str) -> gs.Worksheet:
+def get_worksheet() -> gs.Worksheet:
     """
     Retrieves the configured worksheet using credentials from the environment variables.
-
-    Args:
-        credentials_file_path: Path to the service account credentials file.
 
     Returns:
         A gspread Worksheet object.
 
     Raises:
-        FileNotFoundError: If the credentials file is not found.
         gspread.exceptions.APIError: If there's an error accessing the Google Sheets API.
+        FileNotFoundError: If the credentials file is not found.
+        ValueError: If there's an error accessing the Google Sheets API.
+        RuntimeError: For unexpected errors during retrieval.
     """
     try:
-        client = GoogleSheetsClient(credentials_file_path)
+        client = GoogleSheetsClient(CREDENTIALS_PATH, ACCESS_SCOPES)
         return client.get_worksheet(SPREADSHEET_TITLE, WORKSHEET_TITLE)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Credentials file not found at: {credentials_file_path}")
     except gs.exceptions.APIError as e:
         raise gs.exceptions.APIError(f"Error accessing Google Sheets API: {str(e)}")
 
@@ -322,14 +318,14 @@ def get_info_of_customers(index_day_customers: str, message_day_customers: str) 
     """
     try:
         # Get the worksheet
-        ws = get_worksheet(CREDS_PATH)
+        ws = get_worksheet()
 
         # Get all values from the worksheet
         data = ws.get_all_values()
-        if not data or len(data) < 4:
+        if not data:
             raise ValueError("Invalid worksheet data: insufficient rows")
 
-        # Create DataFrames for sellers and resellers
+        # Create DataFrames for sellers
         try:
             df_sellers = get_dataframe_by_range_name(ws, 'Vendedores')
         except Exception as e:
