@@ -9,7 +9,8 @@ from decouple import config
 from pandas import DataFrame
 from pywhatkit.core import core, exceptions
 
-from data import get_info_of_customers, filter_data_by_vendor
+from modules.data_filtering import filter_data_by_vendor
+from modules.data_processing import get_info_of_customers
 
 WSP_SAG = config('BRAVE_PATH')
 WSP_BGL = config('EDGE_PATH')

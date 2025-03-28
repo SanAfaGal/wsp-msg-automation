@@ -3,8 +3,6 @@ import os
 import gspread as gs
 from google.oauth2.service_account import Credentials
 
-from config.settings import ACCESS_SCOPES
-
 
 class GoogleSheetsClient:
     """
@@ -13,15 +11,17 @@ class GoogleSheetsClient:
     This class abstracts the authentication process and provides a method to access specific worksheets.
     """
 
-    def __init__(self, credentials_file_path: str):
+    def __init__(self, credentials_file_path: str, access_scopes: list[str]):
         """
         Initializes the Google Sheets client with the provided credentials file.
 
         :param credentials_file_path: Path to the Google service account credentials file.
+        :param access_scopes: List of access scopes for the Google Sheets API.
         :raises FileNotFoundError: If the credentials file does not exist.
         :raises ValueError: If authentication fails due to invalid credentials.
         """
         self.credentials_file_path = credentials_file_path
+        self.access_scopes = access_scopes
         self.client = self._authenticate()
 
     def _authenticate(self) -> gs.Client:
@@ -37,8 +37,7 @@ class GoogleSheetsClient:
 
         try:
             # Retrieve access scopes from environment variables
-            access_scopes = ACCESS_SCOPES
-            credentials = Credentials.from_service_account_file(self.credentials_file_path, scopes=access_scopes)
+            credentials = Credentials.from_service_account_file(self.credentials_file_path, scopes=self.access_scopes)
             return gs.authorize(credentials)
         except Exception as e:
             raise ValueError(f"Authentication error: {e}")
